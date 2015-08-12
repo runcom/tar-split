@@ -17,6 +17,10 @@ import (
 // metadata. With the combination of these two items, a precise assembled Tar
 // archive is possible.
 func NewOutputTarStream(fg storage.FileGetter, up storage.Unpacker) io.ReadCloser {
+	return newOutputTarStreamWithOptions(fg, up, DefaultOutputOptions)
+}
+
+func newOutputTarStreamWithOptions(fg storage.FileGetter, up storage.Unpacker, opts Options) io.ReadCloser {
 	// ... Since these are interfaces, this is possible, so let's not have a nil pointer
 	if fg == nil || up == nil {
 		return nil
@@ -30,12 +34,12 @@ func NewOutputTarStream(fg storage.FileGetter, up storage.Unpacker) io.ReadClose
 				return
 			}
 			switch entry.Type {
-			case storage.SegmentType:
+			case storage.SegmentEntry:
 				if _, err := pw.Write(entry.Payload); err != nil {
 					pw.CloseWithError(err)
 					return
 				}
-			case storage.FileType:
+			case storage.FileCheckEntry:
 				if entry.Size == 0 {
 					continue
 				}
